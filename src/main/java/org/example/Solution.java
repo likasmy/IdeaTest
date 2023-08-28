@@ -6,10 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 public class Solution {
@@ -37,11 +34,13 @@ public class Solution {
     public static String fight(TicketsList ticketsList, String originName, String destinationName) {
         StringBuilder result = new StringBuilder();
         List<Ticket> list = ticketsList.getTickets();
-        long minTravelTime = Long.MAX_VALUE;
+        Map<String, Long> minTravelTimes = new HashMap<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yy'T'HH:mm");
 
         for (Ticket ticket : list) {
             if (ticket.getOrigin_name().equals(originName) && ticket.getDestination_name().equals(destinationName)) {
+                String carrier = ticket.getCarrier();
+                long minTravelTime = minTravelTimes.getOrDefault(carrier, Long.MAX_VALUE);
                 Date start;
                 Date finish;
                 try {
@@ -49,20 +48,23 @@ public class Solution {
                     finish = dateFormat.parse(ticket.getArrival_date() + "T" + ticket.getArrival_time());
                     long travelTime = finish.getTime() - start.getTime();
                     if (travelTime < minTravelTime) {
-                        minTravelTime = travelTime;
+                        minTravelTimes.put(carrier, travelTime);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
-        //Получение целого количества часов из миллисекунд
 
-        int hours = (int) minTravelTime / 1000 / 3600;
-        // Получение целого количества минут из миллисекунд
-        int minutes = (int) minTravelTime / 1000 / 60 % 60;
-        result.append(String.format("Минимальное время полета между городами %s и %s составляет:%n%d ч. и %d мин.%n",
-                originName, destinationName, hours, minutes));
+        for (String carrier : minTravelTimes.keySet()) {
+            long minTravelTime = minTravelTimes.get(carrier);
+            //Получение целого количества часов из миллисекунд
+            int hours = (int) minTravelTime / 1000 / 3600;
+            // Получение целого количества минут из миллисекунд
+            int minutes = (int) minTravelTime / 1000 / 60 % 60;
+            result.append(String.format("Минимальное время полета между городами %s и %s для перевозчика %s составляет:%n%d ч. и %d мин.%n",
+                    originName, destinationName, carrier, hours, minutes));
+        }
         return result.toString();
     }
 

@@ -3,6 +3,7 @@ package org.example;
 import java.util.Objects;
 
 public class Ticket {
+    public double getPrice;
     private String origin;
     private String origin_name;
     private String destination;
