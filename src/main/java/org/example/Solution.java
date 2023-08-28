@@ -16,7 +16,7 @@ public class Solution {
     public static void main(String[] args) throws IOException, ParseException {
         String file = args.length != 0 ? args[0] : "tickets.json";
         TicketsList ticketsList = jsonReader(file);
-        String res = calculateFlightTime(ticketsList, "Владивосток", "Тель-Авив");
+        String res = fight(ticketsList, "Владивосток", "Тель-Авив");
         //Вывод ответа в консоль
         System.out.println(res);
         String priceDiff = calculatePriceDifference(ticketsList, "Владивосток", "Тель-Авив");
@@ -32,38 +32,37 @@ public class Solution {
     }
 
     /**
-     * Расчет среднего времени полета между указанными городами
+     * Расчет мин. времени полета между указанными городами
      */
-    public static String calculateFlightTime(TicketsList ticketsList, String originName, String destinationName) throws ParseException {
+    public static String fight(TicketsList ticketsList, String originName, String destinationName) {
         StringBuilder result = new StringBuilder();
         List<Ticket> list = ticketsList.getTickets();
-        long sum = 0;
+        long minTravelTime = Long.MAX_VALUE;
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yy'T'HH:mm");
-        long travelTime = 0;
-        int count = 0;
 
         for (Ticket ticket : list) {
             if (ticket.getOrigin_name().equals(originName) && ticket.getDestination_name().equals(destinationName)) {
-                Date start = dateFormat.parse(ticket.getDeparture_date() + "T" + ticket.getDeparture_time());
-                Date finish = dateFormat.parse(ticket.getArrival_date() + "T" + ticket.getArrival_time());
-                travelTime = finish.getTime() - start.getTime();
-                sum += travelTime;
-                count++;
+                Date start;
+                Date finish;
+                try {
+                    start = dateFormat.parse(ticket.getDeparture_date() + "T" + ticket.getDeparture_time());
+                    finish = dateFormat.parse(ticket.getArrival_date() + "T" + ticket.getArrival_time());
+                    long travelTime = finish.getTime() - start.getTime();
+                    if (travelTime < minTravelTime) {
+                        minTravelTime = travelTime;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
-
-        if (count == 0) {
-            return "Нет данных о полетах между городами " + originName + " и " + destinationName + ".";
-        }
-
-        sum /= count;
         //Получение целого количества часов из миллисекунд
-        int hours = (int) sum / 1000 / 3600;
-        //Получение целого количества минут из миллисекунд
-        int minutes = (int) sum / 1000 / 60 % 60;
-        result.append(String.format("Среднее время полета между городами %s и %s составляет:%n%d ч. и %d мин.%n",
-                originName, destinationName, hours, minutes));
 
+        int hours = (int) minTravelTime / 1000 / 3600;
+        // Получение целого количества минут из миллисекунд
+        int minutes = (int) minTravelTime / 1000 / 60 % 60;
+        result.append(String.format("Минимальное время полета между городами %s и %s составляет:%n%d ч. и %d мин.%n",
+                originName, destinationName, hours, minutes));
         return result.toString();
     }
 
